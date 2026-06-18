@@ -38,7 +38,7 @@ jobs:
             language: javascript-typescript
             config: ./.github/codeql/codeql-ts.yml
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}

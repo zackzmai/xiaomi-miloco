@@ -37,7 +37,7 @@ jobs:
       PR_AGENT_MODEL: ${{ vars.PR_AGENT_MODEL }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # pull_request 默认 checkout 的是 merge ref（= 合并后状态，正合 review-pr 要求看到合并后代码）；
           # fetch-depth: 0 保留完整历史，供命令内的 git fetch origin main + merge-base 比对

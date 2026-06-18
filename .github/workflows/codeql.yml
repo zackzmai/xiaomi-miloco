@@ -46,7 +46,7 @@ jobs:
             config: ./.github/codeql/codeql-ts.yml
           - language: actions
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}

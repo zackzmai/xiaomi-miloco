@@ -24,12 +24,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: 检出可信 base 上的守卫脚本
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 

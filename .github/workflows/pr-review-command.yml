@@ -66,7 +66,7 @@ jobs:
       PR_AGENT_MODEL: ${{ vars.PR_AGENT_MODEL }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           # 钉死 head SHA：refs/pull/<n>/head 在 base 仓里对 fork PR 也可拉；fetch-depth 0 供命令内 merge-base 比对
           ref: refs/pull/${{ github.event.issue.number }}/head
