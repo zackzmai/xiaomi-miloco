@@ -32,17 +32,29 @@ from miloco.perception.engine.types import (
 
 def _build_response(results: list[dict], n_frames: int, fps: int) -> TrackingResponse:
     """将 tracker.get_tracking_results() 转为 TrackingResponse。"""
+    from miloco.perception.engine.identity.tracker.detector import Detection
+
     now_ms = int(time.time() * 1000)
     last_idx = max(0, n_frames - 1)
     object_info: list[TrackedObject] = []
     for r in results:
         x1, y1, x2, y2 = r["xyxy"]
+        class_id = r.get("class_id", Detection.CLASS_HUMAN)
+
+        # 根据 class_id 映射 ObjectType 和 box_type
+        if class_id in (Detection.CLASS_CAT, Detection.CLASS_DOG):
+            obj_type = ObjectType.PET
+            box_type = "pet_body"
+        else:
+            obj_type = ObjectType.HUMAN_BODY
+            box_type = "human_body"
+
         box_info = [TrackingBoxInfo(
             frame_index=last_idx,
-            boxes={"human_body": (x1, y1, x2 - x1, y2 - y1)},
+            boxes={box_type: (x1, y1, x2 - x1, y2 - y1)},
         )]
         object_info.append(TrackedObject(
-            type=ObjectType.HUMAN_BODY,
+            type=obj_type,
             face_id="none",
             track_id=r["id"],
             box_info=box_info,
