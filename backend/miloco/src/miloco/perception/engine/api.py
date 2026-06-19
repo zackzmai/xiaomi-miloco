@@ -409,6 +409,28 @@ class PerceptionEngine(BasePerceptionEngine):
                 out.append((cam_id, tid))
         return out
 
+    def has_active_tracks(self, *, include_pet: bool = False) -> bool:
+        """检查当前是否有活跃的 identity track。
+
+        遍历所有镜头的 IdentityEngine, 任一 track 的 status 在
+        ``{confirmed, unknown, pending}`` 之一即视为有人。
+
+        Args:
+            include_pet: 是否包含宠物 track。当前官方默认 ``track_human_only=True``
+                过滤了宠物, 故默认 False; 等官方放开宠物跟踪后改为 True 即可。
+
+        Returns:
+            True 表示本窗口至少检测到一个活体目标。
+        """
+        _active_statuses = {"confirmed", "unknown", "pending"}
+        for device_id, engine in self._identity_engines.items():
+            if engine is None:
+                continue
+            for state in engine._states.values():
+                if state.status in _active_statuses:
+                    return True
+        return False
+
     def set_main_loop(self, loop: "asyncio.AbstractEventLoop") -> None:
         """记录持久 app event loop, 并透传给所有(含已缓存)identity engine。client 层每窗
         调一次(幂等); tier_c 写库协程靠它脱离每窗临时 loop(asyncio.run), 不被窗末 cancel。"""
@@ -1096,5 +1118,19 @@ class PerceptionEngine(BasePerceptionEngine):
                 else:
                     self._pending_speech.pop(did, None)
                     self._pending_speech_rounds.pop(did, None)
+
+        # Identity flags: signal to event_classifier whether living beings
+        # were present in this window, independent of omni suggestions / rules.
+        #
+        # has_person: any human track detected (confirmed / unknown / pending).
+        # has_pet:    any pet track detected. Currently always False because
+        #             track_human_only=True filters pets before they reach
+        #             IdentityEngine._states; will become meaningful once the
+        #             upstream filter is relaxed.
+        merged.has_person = self.has_active_tracks(include_pet=False)
+        # For now, has_pet is derived the same way — pets never enter _states
+        # due to track_human_only. When pet tracking is enabled, has_active_tracks
+        # should be extended to inspect pet-class tracks separately.
+        merged.has_pet = False  # placeholder until pet tracks flow into _states
 
         return merged

@@ -19,13 +19,20 @@ def _result(
     rules: list[MatchedRule] = None,
     speeches: list[Speech] = None,
     suggestions: list[Suggestion] = None,
+    has_person: bool = False,
+    has_pet: bool = False,
 ) -> RealtimePerceptionResult:
     return RealtimePerceptionResult(
         caption=captions or [],
         matched_rules=rules or [],
         speeches=speeches or [],
         suggestions=suggestions or [],
+        has_person=has_person,
+        has_pet=has_pet,
     )
+
+
+# ── Original tests (return dict now includes has_person / has_pet) ──────────
 
 
 def test_caption_only_not_meaningful():
@@ -37,12 +44,16 @@ def test_caption_only_not_meaningful():
         "has_rule_hit": False,
         "has_suggestion": False,
         "has_asr": False,
+        "has_person": False,
+        "has_pet": False,
     }
 
 
 def test_empty_result_not_meaningful():
     res = classify(_result())
     assert res["is_meaningful"] is False
+    assert res["has_person"] is False
+    assert res["has_pet"] is False
 
 
 def test_rule_hit_only():
@@ -53,6 +64,8 @@ def test_rule_hit_only():
         "has_rule_hit": True,
         "has_suggestion": False,
         "has_asr": False,
+        "has_person": False,
+        "has_pet": False,
     }
 
 
@@ -137,4 +150,79 @@ def test_all_three_combined():
         "has_rule_hit": True,
         "has_suggestion": True,
         "has_asr": True,
+        "has_person": False,
+        "has_pet": False,
     }
+
+
+# ── New tests: has_person / has_pet ─────────────────────────────────────────
+
+
+def test_person_only_is_meaningful():
+    """has_person=True alone → is_meaningful=True (stranger or known member detected)."""
+    r = _result(has_person=True)
+    res = classify(r)
+    assert res == {
+        "is_meaningful": True,
+        "has_rule_hit": False,
+        "has_suggestion": False,
+        "has_asr": False,
+        "has_person": True,
+        "has_pet": False,
+    }
+
+
+def test_pet_only_is_meaningful():
+    """has_pet=True alone → is_meaningful=True."""
+    r = _result(has_pet=True)
+    res = classify(r)
+    assert res == {
+        "is_meaningful": True,
+        "has_rule_hit": False,
+        "has_suggestion": False,
+        "has_asr": False,
+        "has_person": False,
+        "has_pet": True,
+    }
+
+
+def test_person_and_pet():
+    """Both has_person and has_pet → is_meaningful, both flags preserved."""
+    r = _result(has_person=True, has_pet=True)
+    res = classify(r)
+    assert res["is_meaningful"] is True
+    assert res["has_person"] is True
+    assert res["has_pet"] is True
+
+
+def test_person_with_suggestion():
+    """has_person + suggestion → meaningful, both flags True."""
+    r = _result(
+        has_person=True,
+        suggestions=[Suggestion(event="陌生人", action="确认身份")],
+    )
+    res = classify(r)
+    assert res["is_meaningful"] is True
+    assert res["has_person"] is True
+    assert res["has_suggestion"] is True
+
+
+def test_no_person_no_pet_not_meaningful():
+    """Caption only with no identity flags → not meaningful."""
+    r = _result(
+        captions=[CaptionEntry(description="客厅空无一人，家具静置")],
+    )
+    res = classify(r)
+    assert res["is_meaningful"] is False
+    assert res["has_person"] is False
+    assert res["has_pet"] is False
+
+
+def test_defaults_false():
+    """New fields default to False — backward compatible."""
+    r = RealtimePerceptionResult()
+    assert r.has_person is False
+    assert r.has_pet is False
+    res = classify(r)
+    assert res["has_person"] is False
+    assert res["has_pet"] is False

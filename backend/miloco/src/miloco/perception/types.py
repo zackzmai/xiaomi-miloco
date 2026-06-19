@@ -363,6 +363,21 @@ class RealtimePerceptionResult(BaseModel):
             "错误推退。空 dict 表示 OmniError 兜底/无下发。"
         ),
     )
+    has_person: bool = Field(
+        default=False,
+        description=(
+            "Identity engine detected at least one human track (confirmed, unknown, or pending) "
+            "in this window. Set by PerceptionEngine._merge_results()."
+        ),
+    )
+    has_pet: bool = Field(
+        default=False,
+        description=(
+            "Identity engine detected at least one pet track in this window. "
+            "Currently always False in upstream (track_human_only=True filters pets); "
+            "will be set True when pet tracking is enabled."
+        ),
+    )
 
 
 class OnDemandPerceptionResult(BaseModel):
