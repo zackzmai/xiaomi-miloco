@@ -22,6 +22,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from miloco.perception.engine.types import (
+    BoxType,
     FrameInfo,
     ObjectType,
     TrackedObject,
@@ -44,10 +45,10 @@ def _build_response(results: list[dict], n_frames: int, fps: int) -> TrackingRes
         # 根据 class_id 映射 ObjectType 和 box_type
         if class_id in (Detection.CLASS_CAT, Detection.CLASS_DOG):
             obj_type = ObjectType.PET
-            box_type = "pet_body"
+            box_type = BoxType.PET_BODY
         else:
             obj_type = ObjectType.HUMAN_BODY
-            box_type = "human_body"
+            box_type = BoxType.HUMAN_BODY
 
         box_info = [TrackingBoxInfo(
             frame_index=last_idx,
