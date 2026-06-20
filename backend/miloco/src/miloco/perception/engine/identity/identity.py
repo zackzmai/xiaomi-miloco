@@ -134,21 +134,30 @@ def _to_tracking_dicts(objects) -> list[dict]:
     每个 dict 字段（与 SortTracker.get_tracking_results 对齐）：
       ``id`` / ``class_id`` / ``bbox`` / ``xyxy`` / ``confidence``
     """
+    from miloco.perception.engine.identity.tracker.detector import Detection
+    from miloco.perception.engine.types import ObjectType
+
+    _TYPE_TO_CLASS_ID = {
+        ObjectType.PET: Detection.CLASS_CAT,  # 代表值，下游仅区分 human vs non-human
+    }
+
     out: list[dict] = []
     for obj in objects:
-        # 取最近一帧的 human_body bbox
+        # 取最近一帧的 body bbox（根据 ObjectType 选择对应 box_type）
         xyxy = (0, 0, 0, 0)
         bbox_xywh = (0, 0, 0, 0)
         if obj.box_info:
             last = obj.box_info[-1]
-            body = last.boxes.get("human_body") or last.boxes.get("human")
+            # 按 ObjectType 选择对应的 box_type key
+            box_type = "pet_body" if obj.type == ObjectType.PET else "human_body"
+            body = last.boxes.get(box_type) or last.boxes.get("human_body") or last.boxes.get("human")
             if body:
                 x, y, w, h = body
                 bbox_xywh = (x, y, w, h)
                 xyxy = (x, y, x + w, y + h)
         out.append({
             "id": obj.track_id,
-            "class_id": 0,
+            "class_id": _TYPE_TO_CLASS_ID.get(obj.type, Detection.CLASS_HUMAN),
             "bbox": bbox_xywh,
             "xyxy": xyxy,
             "confidence": 1.0,
