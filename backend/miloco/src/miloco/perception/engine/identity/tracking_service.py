@@ -272,8 +272,8 @@ def create_default_mock_response() -> TrackingResponse:
                     TrackingBoxInfo(
                         frame_index=i,
                         boxes={
-                            "human_body": (100 + i, 200 + i, 300, 400),
-                            "human_face": (150 + i, 210 + i, 80, 80),
+                            BoxType.HUMAN_BODY: (100 + i, 200 + i, 300, 400),
+                            BoxType.HUMAN_FACE: (150 + i, 210 + i, 80, 80),
                         },
                     )
                     for i in range(6)
@@ -295,7 +295,7 @@ def create_mock_response_with_movement() -> TrackingResponse:
                 box_info=[
                     TrackingBoxInfo(
                         frame_index=i,
-                        boxes={"human_body": (100 + i * 50, 200, 300, 400)},
+                        boxes={BoxType.HUMAN_BODY: (100 + i * 50, 200, 300, 400)},
                     )
                     for i in range(6)
                 ],
