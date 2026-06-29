@@ -1,8 +1,8 @@
 """_build_response class_id → ObjectType 映射修复的验证测试。
 
 验证修复后 _build_response 根据 class_id 正确映射 ObjectType 和 box_type：
-- CLASS_HUMAN (0) → ObjectType.HUMAN_BODY + "human_body"
-- CLASS_CAT (1) / CLASS_DOG (2) → ObjectType.PET + "pet_body"
+- CLASS_HUMAN (0) → ObjectType.HUMAN_BODY + BoxType.HUMAN_BODY
+- CLASS_CAT (1) / CLASS_DOG (2) → ObjectType.PET + BoxType.PET_BODY
 """
 
 from __future__ import annotations
